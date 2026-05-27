@@ -237,48 +237,7 @@ function updateScore() {
         + '%';
 }
 
-function loadCSV() {
 
-    var file =
-    document.getElementById('csvFile').files[0];
-
-    if(!file) {
-
-        alert('CSVを選択してください');
-
-        return;
-    }
-
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-
-        var text = e.target.result;
-
-        var lines = text.split('\n');
-
-        for(var i = 1; i < lines.length; i++) {
-
-            var cols = lines[i].split(',');
-
-            if(cols.length >= 2) {
-
-                questions.push({
-
-                    question: cols[0].trim(),
-
-                    answer: cols[1].trim()
-                });
-            }
-        }
-
-        alert('CSV読込完了');
-
-        updateScore();
-    };
-
-    reader.readAsText(file, 'UTF-8');
-}
 
 window.onload = function() {
 
