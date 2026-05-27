@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>元素記号テスト</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    background: #f0f0f0;
+    padding: 10px;
+}
+
+.box {
+    background: white;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+#question {
+    font-size: 24px;
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    font-size: 20px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    font-size: 18px;
+}
+
+#result {
+    margin-top: 15px;
+    font-size: 22px;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+
+<h2>元素記号テスト</h2>
+
+<div id="question">準備中...</div>
+
+<input type="text" id="answer">
+
+<button id="checkBtn">答え合わせ</button>
+<button id="nextBtn">次の問題</button>
+
+<input type="file" id="csvFile" accept=".csv">
+<button id="loadCsvBtn">CSV読込</button>
+
+<div id="result"></div>
+<div id="score"></div>
+<div id="best"></div>
+
+<h3>苦手問題ランキング</h3>
+<div id="weak"></div>
+
+<h3>学習履歴</h3>
+<div id="history"></div>
+
+</div>
+
+<script>
+
+var questions = [
+    {question:'水素の元素記号は？', answer:'H'},
+    {question:'酸素の元素記号は？', answer:'O'},
+    {question:'炭素の元素記号は？', answer:'C'},
+    {question:'窒素の元素記号は？', answer:'N'},
+    {question:'塩素の元素記号は？', answer:'Cl'},
+    {question:'硫黄の元素記号は？', answer:'S'}
+];
+
+var index = 0;
+
+var score = 0;
+var total = 0;
+
+var bestScore = 0;
+var weakData = {};
+var historyData = [];
+
+function shuffleQuestions() {
+
+    for(var i = questions.length - 1; i > 0; i--) {
+
+        var j = Math.floor(Math.random() * (i + 1));
+
+        var temp = questions[i];
+
+        questions[i] = questions[j];
+
+        questions[j] = temp;
+    }
+}
+
+function showQuestion() {
+
+    document.getElementById('question').textContent =
+    questions[index].question;
+
+    document.getElementById('answer').value = '';
+
+    document.getElementById('result').textContent = '';
+}
+
+function checkAnswer() {
+
+    var user =
+    document.getElementById('answer').value;
+
+    total++;
+
+    if(user.toLowerCase() ==
+       questions[index].answer.toLowerCase()) {
+
+        score++;
+
+        document.getElementById('result').textContent =
+        '⭕ 正解';
+
+    } else {
+
+        document.getElementById('result').textContent =
+        '❌ 正解: ' + questions[index].answer;
+    }
+
+    updateScore();
+}
+
+function nextQuestion() {
+
+    index++;
+
+    if(index >= questions.length) {
+
+        index = 0;
+
+        shuffleQuestions();
+    }
+
+    showQuestion();
+}
+
+function updateScore() {
+
+    var rate = 0;
+
+    if(total > 0) {
+
+        rate = Math.round(score / total * 100);
+    }
+
+    document.getElementById('score').textContent =
+
+        (index + 1)
+        + ' / '
+        + questions.length
+        + ' 正解率: '
+        + rate
+        + '%';
+}
+
+function loadCSV() {
+
+    var file =
+    document.getElementById('csvFile').files[0];
+
+    if(!file) {
+
+        alert('CSVを選択してください');
+
+        return;
+    }
+
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+
+        var text = e.target.result;
+
+        var lines = text.split('\n');
+
+        for(var i = 1; i < lines.length; i++) {
+
+            var cols = lines[i].split(',');
+
+            if(cols.length >= 2) {
+
+                questions.push({
+
+                    question: cols[0].trim(),
+
+                    answer: cols[1].trim()
+                });
+            }
+        }
+
+        alert('CSV読込完了');
+
+        updateScore();
+    };
+
+    reader.readAsText(file, 'UTF-8');
+}
+
+window.onload = function() {
+
+    document.getElementById('checkBtn')
+    .addEventListener('click', checkAnswer);
+
+    document.getElementById('nextBtn')
+    .addEventListener('click', nextQuestion);
+
+    document.getElementById('loadCsvBtn')
+    .addEventListener('click', loadCSV);
+
+    shuffleQuestions();
+
+    showQuestion();
+
+    updateScore();
+};
+
+</script>
+
+
+</body>
+</html>
