@@ -63,6 +63,9 @@ button {
 
 <button id="checkBtn">答え合わせ</button>
 <button id="nextBtn">次の問題</button>
+<button id="reviewBtn">
+ミス問題復習
+</button>
 
 <div id="result"></div>
 <div id="score"></div>
@@ -155,6 +158,35 @@ var total = 0;
 var bestScore = 0;
 var weakData = {};
 var historyData = [];
+function saveHistory() {
+
+    historyData.unshift(
+
+        new Date().toLocaleString()
+        + ' '
+        + score
+        + '/'
+        + total
+    );
+
+    if(historyData.length > 10) {
+
+        historyData.pop();
+    }
+
+    var html = '';
+
+    for(var i = 0; i < historyData.length; i++) {
+
+        html += historyData[i] + '<br>';
+    }
+
+    document.getElementById('history')
+    .innerHTML = html;
+}
+
+var weakData = {};
+var reviewMode = false;
 
 function shuffleQuestions() {
 
@@ -199,24 +231,62 @@ function checkAnswer() {
 
         document.getElementById('result').textContent =
         '❌ 正解: ' + questions[index].answer;
+var q = questions[index].question;
+
+if(!weakData[q]) {
+
+    weakData[q] = 0;
+}
+
+weakData[q]++;
     }
 
     updateScore();
 }
 
+
 function nextQuestion() {
 
-    index++;
+    var list = [];
 
-    if(index >= questions.length) {
+    if(reviewMode) {
 
-        index = 0;
+        for(var i = 0; i < questions.length; i++) {
 
-        shuffleQuestions();
+            var q = questions[i].question;
+
+            if(weakData[q]) {
+
+                list.push(i);
+            }
+        }
+
+        if(list.length === 0) {
+
+            alert('ミス問題なし');
+
+            reviewMode = false;
+
+            return;
+        }
+
+        index =
+        list[Math.floor(Math.random() * list.length)];
+
+    } else {
+
+        var oldIndex = index;
+
+        while(index === oldIndex) {
+
+            index =
+            Math.floor(Math.random() * questions.length);
+        }
     }
 
     showQuestion();
 }
+
 
 function updateScore() {
 
@@ -247,6 +317,14 @@ window.onload = function() {
     document.getElementById('nextBtn')
     .addEventListener('click', nextQuestion);
 
+    document.getElementById('reviewBtn')
+    .addEventListener('click', function() {
+
+        reviewMode = true;
+
+        nextQuestion();
+    });
+
     document.getElementById('answer')
     .addEventListener('keypress', function(e) {
 
@@ -255,6 +333,13 @@ window.onload = function() {
             checkAnswer();
         }
     });
+document.getElementById('reviewBtn')
+.addEventListener('click', function() {
+
+    reviewMode = true;
+
+    nextQuestion();
+});
 
     loadCSV();
 
