@@ -64,9 +64,6 @@ button {
 <button id="checkBtn">答え合わせ</button>
 <button id="nextBtn">次の問題</button>
 
-<input type="file" id="csvFile" accept=".csv">
-<button id="loadCsvBtn">CSV読込</button>
-
 <div id="result"></div>
 <div id="score"></div>
 <div id="best"></div>
@@ -221,48 +218,6 @@ function updateScore() {
         + '%';
 }
 
-function loadCSV() {
-
-    var file =
-    document.getElementById('csvFile').files[0];
-
-    if(!file) {
-
-        alert('CSVを選択してください');
-
-        return;
-    }
-
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-
-        var text = e.target.result;
-
-        var lines = text.split('\n');
-
-        for(var i = 1; i < lines.length; i++) {
-
-            var cols = lines[i].split(',');
-
-            if(cols.length >= 2) {
-
-                questions.push({
-
-                    question: cols[0].trim(),
-
-                    answer: cols[1].trim()
-                });
-            }
-        }
-
-        alert('CSV読込完了');
-
-        updateScore();
-    };
-
-    reader.readAsText(file, 'UTF-8');
-}
 
 window.onload = function() {
 
@@ -271,9 +226,6 @@ window.onload = function() {
 
     document.getElementById('nextBtn')
     .addEventListener('click', nextQuestion);
-
-    document.getElementById('loadCsvBtn')
-    .addEventListener('click', loadCSV);
 
 loadCSV();
 
