@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -81,14 +81,55 @@ button {
 
 <script>
 
-var questions = [
-    {question:'水素の元素記号は？', answer:'H'},
-    {question:'酸素の元素記号は？', answer:'O'},
-    {question:'炭素の元素記号は？', answer:'C'},
-    {question:'窒素の元素記号は？', answer:'N'},
-    {question:'塩素の元素記号は？', answer:'Cl'},
-    {question:'硫黄の元素記号は？', answer:'S'}
-];
+var questions = [];
+
+function loadCSV() {
+
+    fetch('questions.csv')
+
+    .then(function(response) {
+
+        return response.text();
+
+    })
+
+    .then(function(text) {
+
+        var lines = text.split('\n');
+
+        for(var i = 0; i < lines.length; i++) {
+
+            var line = lines[i].trim();
+
+            if(line === '') {
+                continue;
+            }
+
+            var parts = line.split(',');
+
+            if(parts.length >= 2) {
+
+                questions.push({
+                    question: parts[0],
+                    answer: parts[1]
+                });
+            }
+        }
+
+        shuffleQuestions();
+
+        showQuestion();
+
+        updateScore();
+    })
+
+    .catch(function(error) {
+
+        document.getElementById('question')
+        .textContent =
+        'CSV読込失敗';
+    });
+}
 
 var index = 0;
 
@@ -234,11 +275,8 @@ window.onload = function() {
     document.getElementById('loadCsvBtn')
     .addEventListener('click', loadCSV);
 
-    shuffleQuestions();
+loadCSV();
 
-    showQuestion();
-
-    updateScore();
 };
 
 </script>
