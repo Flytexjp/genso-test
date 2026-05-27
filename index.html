@@ -117,17 +117,26 @@ function loadCSV() {
             if(parts.length >= 2) {
 
                 questions.push({
-                    question: parts[0],
-                    answer: parts[1]
+            　 question: parts[0].trim(),
+                answer: parts[1].trim()
                 });
             }
         }
 
-        shuffleQuestions();
+if(questions.length === 0) {
 
-        showQuestion();
+    document.getElementById('question')
+    .textContent =
+    '問題0件';
 
-        updateScore();
+    return;
+}
+
+shuffleQuestions();
+
+showQuestion();
+
+updateScore();
     })
 
     .catch(function(error) {
