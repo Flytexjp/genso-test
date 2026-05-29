@@ -60,7 +60,14 @@ button {
 <select id="csvSelect">
 <option value="questions.csv">元素</option>
 <option value="english.csv">英単語</option>
-<option value="history.csv">歴史</option>
+<option value="social.csv">社会</option>
+<option value="science.csv">理科</option>
+<option value="language.csv">国語</option>
+<option value="111.csv">その他-01</option>
+<option value="222.csv">その他-02</option>
+<option value="333.csv">その他-03</option>
+<option value="444.csv">その他-04</option>
+<option value="555.csv">その他-05</option>
 </select>
 
 <button id="changeCsvBtn">
@@ -173,7 +180,21 @@ var total = 0;
 var bestScore = 0;
 var weakData = {};
 var historyData = [];
+
+
 function saveHistory() {
+
+    var d = new Date();
+
+    var stamp =
+
+        (d.getMonth() + 1)
+        + '/'
+        + d.getDate()
+        + ' '
+        + d.getHours()
+        + ':'
+        + ('0' + d.getMinutes()).slice(-2);
 
 historyData.unshift(
 
