@@ -77,6 +77,13 @@ button {
 
 <div id="question">準備中...</div>
 
+<img id="questionImage"
+     style="max-width:100%;
+            display:none;
+            margin-top:10px;
+            margin-bottom:10px;">
+
+
 <input type="text" id="answer">
 
 <button id="checkBtn">答え合わせ</button>
@@ -142,8 +149,16 @@ fetch(csvFile)
             if(parts.length >= 2) {
 
 questions.push({
+
     question: parts[0].trim(),
-    answer: parts[1].trim()
+
+    answer: parts[1].trim(),
+
+    image:
+    parts.length >= 3
+    ? parts[2].trim()
+    : ''
+
 });
             }
         }
@@ -242,6 +257,22 @@ function showQuestion() {
 
     document.getElementById('question').textContent =
     questions[index].question;
+
+    var img =
+    document.getElementById('questionImage');
+
+    if(questions[index].image) {
+
+        img.src =
+        'images/' +
+        questions[index].image;
+
+        img.style.display = 'block';
+
+    } else {
+
+        img.style.display = 'none';
+    }
 
     document.getElementById('answer').value = '';
 
