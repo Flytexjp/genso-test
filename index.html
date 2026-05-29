@@ -57,6 +57,17 @@ button {
 
 <h2>元素記号テスト</h2>
 
+<select id="csvSelect">
+<option value="questions.csv">元素</option>
+<option value="english.csv">英単語</option>
+<option value="history.csv">歴史</option>
+</select>
+
+<button id="changeCsvBtn">
+科目変更
+</button>
+
+
 <div id="question">準備中...</div>
 
 <input type="text" id="answer">
@@ -85,7 +96,11 @@ var questions = [];
 
 function loadCSV() {
 
-    fetch('questions.csv')
+var csvFile =
+document.getElementById('csvSelect').value;
+
+fetch(csvFile)
+
 
 .then(function(response) {
 
@@ -160,14 +175,14 @@ var weakData = {};
 var historyData = [];
 function saveHistory() {
 
-    historyData.unshift(
+historyData.unshift(
 
-        new Date().toLocaleString()
-        + ' '
-        + score
-        + '/'
-        + total
-    );
+    stamp
+    + ' '
+    + score
+    + '/'
+    + total
+);
 
     if(historyData.length > 10) {
 
@@ -242,6 +257,7 @@ weakData[q]++;
     }
 
     updateScore();
+    saveHistory();
 }
 
 
@@ -333,12 +349,14 @@ window.onload = function() {
             checkAnswer();
         }
     });
-document.getElementById('reviewBtn')
+document.getElementById('changeCsvBtn')
 .addEventListener('click', function() {
 
-    reviewMode = true;
+    questions = [];
 
-    nextQuestion();
+    index = 0;
+
+    loadCSV();
 });
 
     loadCSV();
