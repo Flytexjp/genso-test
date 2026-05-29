@@ -80,6 +80,8 @@ button {
 <img id="questionImage"
      style="max-width:100%;
             display:none;
+            cursor:pointer;">
+
             margin-top:10px;
             margin-bottom:10px;">
 
@@ -234,6 +236,14 @@ historyData.unshift(
 
     document.getElementById('history')
     .innerHTML = html;
+
+localStorage.setItem(
+
+    'historyData',
+
+    JSON.stringify(historyData)
+);
+
 }
 
 var weakData = {};
@@ -379,6 +389,20 @@ function updateScore() {
 
 window.onload = function() {
 
+var saved =
+
+localStorage.getItem('historyData');
+
+if(saved) {
+
+    historyData =
+    JSON.parse(saved);
+
+    document.getElementById('history')
+    .innerHTML =
+    historyData.join('<br>');
+}
+
     document.getElementById('checkBtn')
     .addEventListener('click', checkAnswer);
 
@@ -409,6 +433,12 @@ document.getElementById('changeCsvBtn')
     index = 0;
 
     loadCSV();
+});
+
+document.getElementById('questionImage')
+.addEventListener('click', function() {
+
+    window.open(this.src);
 });
 
     loadCSV();
