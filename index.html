@@ -261,6 +261,46 @@ function saveSessionHistory() {
     historyData.join('<br>');
 }
 
+function updateWeakRanking() {
+
+    var arr = [];
+
+    for(var key in weakData) {
+
+        arr.push({
+            q: key,
+            count: weakData[key]
+        });
+    }
+
+    arr.sort(function(a,b){
+
+        return b.count - a.count;
+
+    });
+
+    var html = '';
+
+    for(
+        var i = 0;
+        i < Math.min(10, arr.length);
+        i++
+    ){
+
+        html +=
+
+        (i + 1)
+        + '位 '
+        + arr[i].q
+        + ' ('
+        + arr[i].count
+        + '回)<br>';
+    }
+
+    document.getElementById('weak')
+    .innerHTML = html;
+}
+
 var weakData = {};
 var reviewMode = false;
 
@@ -345,6 +385,10 @@ function checkAnswer() {
         }
 
         weakData[q]++;
+
+updateWeakRanking();
+
+
     }
 
 updateScore();
@@ -395,6 +439,30 @@ document.getElementById('summary').innerHTML =
     '学習時間：' +
     minutes +
     '分';
+
+if(wrongQuestions.length > 0){
+
+    document.getElementById('summary')
+    .innerHTML +=
+
+    '<br><br>' +
+
+    'ミス問題：' +
+
+    wrongQuestions.length +
+
+    '問';
+}
+
+if(wrongQuestions.length > 0){
+
+    document.getElementById('summary')
+    .innerHTML +=
+
+    '<br>' +
+
+    '↓ ミス問題復習ボタンで再挑戦できます';
+}
 
     saveSessionHistory();
 }
