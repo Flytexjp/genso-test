@@ -173,11 +173,12 @@ if(questions.length === 0) {
     return;
 }
 
-shuffleQuestions();
+sessionStart = new Date();
 
 showQuestion();
 
 updateScore();
+
     })
 
     .catch(function(error) {
@@ -198,55 +199,79 @@ var weakData = {};
 var historyData = [];
 
 
-function saveHistory() {
+function saveSessionHistory() {
 
     var d = new Date();
 
     var stamp =
 
-        (d.getMonth() + 1)
+        d.getFullYear()
+        + '/'
+        + (d.getMonth()+1)
         + '/'
         + d.getDate()
         + ' '
         + d.getHours()
         + ':'
-        + ('0' + d.getMinutes()).slice(-2);
+        + ('0'+d.getMinutes()).slice(-2);
 
-historyData.unshift(
+    var rate =
+    Math.round(score / total * 100);
 
-    stamp
-    + ' '
-    + score
-    + '/'
-    + total
-);
+    var subject =
 
-    if(historyData.length > 10) {
+    document.getElementById(
+        'csvSelect'
+    ).options[
+        document.getElementById(
+            'csvSelect'
+        ).selectedIndex
+    ].text;
+
+    historyData.unshift(
+
+        stamp
+        + ' | '
+        + subject
+        + ' | '
+        + score
+        + '/'
+        + total
+        + ' | '
+        + rate
+        + '%'
+    );
+
+    if(historyData.length > 20) {
 
         historyData.pop();
     }
 
-    var html = '';
+    localStorage.setItem(
+        'historyData',
+        JSON.stringify(historyData)
+    );
 
-    for(var i = 0; i < historyData.length; i++) {
-
-        html += historyData[i] + '<br>';
-    }
-
-    document.getElementById('history')
-    .innerHTML = html;
-
-localStorage.setItem(
-
-    'historyData',
-
-    JSON.stringify(historyData)
-);
-
+    document.getElementById(
+        'history'
+    ).innerHTML =
+    historyData.join('<br>');
 }
 
 var weakData = {};
 var reviewMode = false;
+
+var sessionStart = null;
+var wrongQuestions = [];
+var sessionFinished = false;
+
+if(index >= questions.length) {
+
+    finishSession();
+
+    return;
+}
+
 
 function shuffleQuestions() {
 
@@ -290,13 +315,17 @@ function showQuestion() {
 
 function checkAnswer() {
 
+    if(sessionFinished) return;
+
     var user =
     document.getElementById('answer').value;
 
     total++;
 
-    if(user.toLowerCase() ==
-       questions[index].answer.toLowerCase()) {
+    if(
+        user.toLowerCase() ===
+        questions[index].answer.toLowerCase()
+    ) {
 
         score++;
 
@@ -306,58 +335,89 @@ function checkAnswer() {
     } else {
 
         document.getElementById('result').textContent =
-        '❌ 正解: ' + questions[index].answer;
-var q = questions[index].question;
+        '❌ 正解: ' +
+        questions[index].answer;
 
-if(!weakData[q]) {
+        wrongQuestions.push(index);
 
-    weakData[q] = 0;
-}
+        var q = questions[index].question;
 
-weakData[q]++;
+        if(!weakData[q]) {
+
+            weakData[q] = 0;
+        }
+
+        weakData[q]++;
     }
 
-    updateScore();
-    saveHistory();
+updateScore();
+
+}
+
+
+function finishSession() {
+
+    sessionFinished = true;
+
+    var end = new Date();
+
+    var minutes = Math.floor(
+        (end - sessionStart) / 60000
+    );
+
+    var rate = Math.round(
+        score / total * 100
+    );
+
+    alert(
+        '学習完了\n\n' +
+        '正解数: ' +
+        score +
+        '/' +
+        total +
+        '\n正答率: ' +
+        rate +
+        '%\n学習時間: ' +
+        minutes +
+        '分'
+    );
+
+    saveSessionHistory();
 }
 
 
 function nextQuestion() {
 
-    var list = [];
+    if(sessionFinished) {
+        return;
+    }
 
     if(reviewMode) {
 
-        for(var i = 0; i < questions.length; i++) {
+        if(wrongQuestions.length === 0) {
 
-            var q = questions[i].question;
-
-            if(weakData[q]) {
-
-                list.push(i);
-            }
-        }
-
-        if(list.length === 0) {
-
-            alert('ミス問題なし');
-
-            reviewMode = false;
+            alert('復習問題なし');
 
             return;
         }
 
         index =
-        list[Math.floor(Math.random() * list.length)];
+        wrongQuestions[
+            Math.floor(
+                Math.random()
+                * wrongQuestions.length
+            )
+        ];
 
     } else {
 
-        var oldIndex = index;
+        index++;
 
-        while(index === oldIndex) {
+        if(index >= questions.length) {
 
-            index =
-            Math.floor(Math.random() * questions.length);
+            finishSession();
+
+            return;
         }
     }
 
@@ -427,11 +487,20 @@ if(saved) {
 document.getElementById('changeCsvBtn')
 .addEventListener('click', function() {
 
-    questions = [];
+questions = [];
 
-    index = 0;
+index = 0;
+score = 0;
+total = 0;
 
-    loadCSV();
+wrongQuestions = [];
+
+sessionFinished = false;
+reviewMode = false;
+
+loadCSV();
+
+
 });
 
 document.getElementById('questionImage')
