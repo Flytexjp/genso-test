@@ -310,6 +310,7 @@ var sessionStart = null;
 var wrongQuestions = [];
 var sessionFinished = false;
 
+var reviewIndex = 0;
 
 
 function shuffleQuestions() {
@@ -462,7 +463,13 @@ if(wrongQuestions.length > 0){
 
     wrongQuestions.length +
 
-    '問';
+    '問<br><br>' +
+
+    '<button onclick="startReview()">' +
+
+    'ミス問題復習スタート' +
+
+    '</button>';
 }
 
 if(wrongQuestions.length > 0){
@@ -485,24 +492,25 @@ function nextQuestion() {
         return;
     }
 
-    if(reviewMode) {
+if(reviewMode) {
 
-        if(wrongQuestions.length === 0) {
+    reviewIndex++;
 
-            alert('復習問題なし');
+    if(reviewIndex >= wrongQuestions.length){
 
-            return;
-        }
+        alert('ミス問題復習完了');
 
-        index =
-        wrongQuestions[
-            Math.floor(
-                Math.random()
-                * wrongQuestions.length
-            )
-        ];
+        reviewMode = false;
 
-    } else {
+        return;
+    }
+
+    index =
+    wrongQuestions[reviewIndex];
+}
+
+
+else {
 
         index++;
 
@@ -513,6 +521,24 @@ function nextQuestion() {
             return;
         }
     }
+
+    showQuestion();
+}
+
+function startReview(){
+
+    reviewMode = true;
+
+    reviewIndex = 0;
+
+    index = wrongQuestions[0];
+
+    sessionFinished = false;
+
+    document.getElementById('summary')
+    .innerHTML =
+
+    '<b>ミス問題復習中</b>';
 
     showQuestion();
 }
