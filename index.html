@@ -100,6 +100,9 @@ button {
 <h3>苦手問題ランキング</h3>
 <div id="weak"></div>
 
+<h3>学習結果</h3>
+<div id="summary"></div>
+
 <h3>学習履歴</h3>
 <div id="history"></div>
 
@@ -363,18 +366,35 @@ function finishSession() {
         score / total * 100
     );
 
-    alert(
-        '学習完了\n\n' +
-        '正解数: ' +
-        score +
-        '/' +
-        total +
-        '\n正答率: ' +
-        rate +
-        '%\n学習時間: ' +
-        minutes +
-        '分'
-    );
+var subject =
+
+document.getElementById(
+    'csvSelect'
+).options[
+    document.getElementById(
+        'csvSelect'
+    ).selectedIndex
+].text;
+
+document.getElementById('summary').innerHTML =
+
+    '<b>学習完了</b><br><br>' +
+
+    '科目：' + subject + '<br>' +
+
+    '正解数：' +
+    score +
+    '/' +
+    total +
+    '<br>' +
+
+    '正答率：' +
+    rate +
+    '%<br>' +
+
+    '学習時間：' +
+    minutes +
+    '分';
 
     saveSessionHistory();
 }
@@ -486,6 +506,11 @@ questions = [];
 index = 0;
 score = 0;
 total = 0;
+
+document.getElementById(
+    'summary'
+).innerHTML = '';
+
 
 wrongQuestions = [];
 
