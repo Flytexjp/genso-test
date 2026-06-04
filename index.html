@@ -102,6 +102,10 @@ button {
 ミス問題復習
 </button>
 
+<button id="weakBtn">
+苦手問題特訓
+</button>
+
 <div id="result"></div>
 <div id="score"></div>
 <div id="best"></div>
@@ -313,6 +317,10 @@ function updateWeakRanking() {
 var weakData = {};
 var reviewMode = false;
 
+var weakMode = false;
+var weakQuestions = [];
+
+
 var sessionStart = null;
 var wrongQuestions = [];
 var sessionFinished = false;
@@ -499,6 +507,31 @@ function nextQuestion() {
         return;
     }
 
+    if(weakMode){
+
+        var pos =
+        weakQuestions.indexOf(index);
+
+        pos++;
+
+        if(pos >= weakQuestions.length){
+
+            alert('苦手問題特訓完了');
+
+            weakMode = false;
+
+            return;
+        }
+
+        index =
+        weakQuestions[pos];
+
+        showQuestion();
+
+        return;
+    }
+
+
 if(reviewMode) {
 
     reviewIndex++;
@@ -550,6 +583,37 @@ function startReview(){
     showQuestion();
 }
 
+function startWeakMode(){
+
+    weakMode = true;
+
+    weakQuestions = [];
+
+    for(var i=0;i<questions.length;i++){
+
+        var q = questions[i].question;
+
+        if(weakData[q]){
+
+            weakQuestions.push(i);
+        }
+    }
+
+    if(weakQuestions.length === 0){
+
+        alert('苦手問題なし');
+
+        weakMode = false;
+
+        return;
+    }
+
+    index =
+    weakQuestions[0];
+
+    showQuestion();
+}
+
 
 function updateScore() {
 
@@ -595,6 +659,13 @@ if(saved) {
     .addEventListener('click', nextQuestion);
 
     document.getElementById('reviewBtn')
+
+document.getElementById('weakBtn')
+.addEventListener(
+'click',
+startWeakMode
+);
+
     .addEventListener('click', function() {
 
         reviewMode = true;
