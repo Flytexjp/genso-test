@@ -377,11 +377,25 @@ function checkAnswer() {
     document.getElementById('answer').value;
 
     total++;
+var answers =
+questions[index].answer.split('|');
+
+var correct = false;
+
+for(var i=0;i<answers.length;i++){
 
     if(
         user.toLowerCase() ===
-        questions[index].answer.toLowerCase()
-    ) {
+        answers[i].trim().toLowerCase()
+    ){
+        correct = true;
+    }
+}
+
+if(correct)
+   
+
+ {
 
         score++;
 
