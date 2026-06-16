@@ -325,6 +325,7 @@ var reviewMode = false;
 
 var weakMode = false;
 var weakQuestions = [];
+var weakIndex = 0;
 
 
 var sessionStart = null;
@@ -426,6 +427,11 @@ if(correct)
 
 updateWeakRanking();
 
+localStorage.setItem(
+    'weakData',
+    JSON.stringify(weakData)
+);
+
 
     }
 
@@ -520,12 +526,9 @@ function nextQuestion() {
 
     if(weakMode){
 
-        var pos =
-        weakQuestions.indexOf(index);
+        weakIndex++;
 
-        pos++;
-
-        if(pos >= weakQuestions.length){
+        if(weakIndex >= weakQuestions.length){
 
             alert('苦手問題特訓完了');
 
@@ -535,7 +538,7 @@ function nextQuestion() {
         }
 
         index =
-        weakQuestions[pos];
+        weakQuestions[weakIndex];
 
         showQuestion();
 
@@ -578,9 +581,15 @@ else {
 
 function startReview(){
 
-    reviewMode = true;
+    if(wrongQuestions.length === 0){
+        alert('ミス問題がありません');
+        return;
+    }
 
-    reviewIndex = -1;
+    reviewMode = true;
+    wrongQuestions = [...new Set(wrongQuestions)];
+
+    reviewIndex = 0;
 
     index = wrongQuestions[0];
 
@@ -595,8 +604,6 @@ function startReview(){
 }
 
 function startWeakMode(){
-
-    weakMode = true;
 
     weakQuestions = [];
 
@@ -618,6 +625,9 @@ function startWeakMode(){
 
         return;
     }
+
+    weakMode = true;
+    weakIndex = 0;
 
     index =
     weakQuestions[0];
@@ -663,6 +673,16 @@ if(saved) {
     historyData.join('<br>');
 }
 
+var weakSaved =
+localStorage.getItem('weakData');
+
+if(weakSaved){
+    try{
+        weakData = JSON.parse(weakSaved);
+        updateWeakRanking();
+    }catch(e){}
+}
+
     document.getElementById('checkBtn')
     .addEventListener('click', checkAnswer);
 
@@ -672,9 +692,8 @@ if(saved) {
 document.getElementById('reviewBtn')
 .addEventListener('click', function() {
 
-    reviewMode = true;
+    startReview();
 
-    nextQuestion();
 });
 
 document.getElementById('weakBtn')
@@ -706,7 +725,6 @@ document.getElementById(
 
 
 wrongQuestions = [];
-
 sessionFinished = false;
 reviewMode = false;
 
