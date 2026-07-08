@@ -1,752 +1,380 @@
-<!DOCTYPE html>
-<html lang="ja">
+// ===== 共通 =====
+const $ = id => document.getElementById(id);
 
-<head>
+// ===== 状態管理 =====
+let questions = [];
 
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta charset="UTF-8">
+let index = 0;
+let score = 0;
+let total = 0;
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+let bestScore = 0;
 
-<title>スマホでワーク</title>
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.png">
+let weakData = {};
 
-<style>
-body {
-    font-family: sans-serif;
-    background: #f0f0f0;
-    padding: 10px;
-}
+let historyData = [];
 
-.box {
-    background: white;
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
-    border-radius: 10px;
-}
+let reviewMode = false;
+let weakMode = false;
 
-#question {
-    font-size: 24px;
-    margin-bottom: 20px;
-    min-height: 40px;
-}
+let weakQuestions = [];
 
-input {
-    width: 100%;
-    padding: 12px;
-    font-size: 20px;
-    box-sizing: border-box;
-}
+let reviewIndex = 0;
 
-button {
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    font-size: 18px;
-}
+let wrongQuestions = [];
 
-#result {
-    margin-top: 15px;
-    font-size: 22px;
-}
-</style>
-</head>
-<body>
+let sessionStart = null;
 
-<div class="box">
-
-<h2>中２-１学期末テスト対策</h2>
-
-
-    <select id="csvSelect">
-<option value="eiken3_60days_300words.csv">英単語【01】</option>
-<option value="questions.csv">元素</option>
-<option value="social_01.csv">社会-01調査の手法</option>
-<option value="social_02.csv">社会-02地図記号</option>
-<option value="social_03.csv">社会-0３日本の地域的特色①</option>
-<option value="social_09.csv">社会-04日本の地域的特色②</option>
-<option value="social_10.csv">社会-05日本の地域的特色③</option>
-<option value="social_11.csv">社会-06日本の地域的特色④</option>
-<option value="social_12.csv">社会-07地域区分と都道府県名</option>
-<option value="social_00_01.csv">社会-06</option>
-<option value="social_04.csv">社会＿R1-歴史(武士の政権の成立)</option>
-<option value="social_05.csv">社会＿R2-歴史(まとめ①)</option>
-<option value="social_06.csv">社会＿R3-歴史(まとめ②)</option>
-<option value="social_07.csv">社会＿R4-歴史(まとめ③)</option>
-<option value="social_08.csv">社会＿R5-歴史(まとめ④)</option>
-<option value="science_01.csv">理科-01</option>
-<option value="science_02.csv">理科-02</option>
-<option value="science_03.csv">理科-03-分子</option>
-<option value="science_S01.csv">理科-化学式のコツ</option>
-<option value="music_01.csv">音楽-翼をください)</option>
-<option value="music_02.csv">音楽-夏の思い出)</option>
-<option value="music_03.csv">音楽-小フーガ)</option>
-<option value="eng_01.csv">英単語【未搭載】</option>
-<option value="language.csv">国語【未搭載】</option>
-<option value="333.csv">その他-03【未搭載】</option>
-<option value="444.csv">その他-04【未搭載】</option>
-<option value="555.csv">その他-05【未搭載】</option>
-</select>
-
-<button id="changeCsvBtn">
-科目変更
-</button>
-
-
-<div id="question">準備中...</div>
-
-<img id="questionImage"
-     style="max-width:100%;
-            display:none;
-            cursor:pointer;">
-
-<input type="text" id="answer">
-
-<button id="checkBtn">答え合わせ</button>
-<button id="nextBtn">次の問題</button>
-<button id="reviewBtn">
-ミス問題復習
-</button>
-
-<button id="weakBtn">
-苦手問題特訓
-</button>
-
-<div id="result"></div>
-<div id="score"></div>
-<div id="best"></div>
-
-<h3>苦手問題ランキング</h3>
-<div id="weak"></div>
-
-<h3>学習結果</h3>
-<div id="summary"></div>
-
-<h3>学習履歴</h3>
-<div id="history"></div>
-
-</div>
-
-<script>
-
-var questions = [];
+let sessionFinished = false;
 
 function loadCSV() {
 
-var csvFile =
-document.getElementById('csvSelect').value;
+    questions = [];
 
-fetch(csvFile)
+    fetch($("csvSelect").value)
 
+        .then(r => {
 
-.then(function(response) {
+            if (!r.ok) {
 
-    if(!response.ok) {
+                $("question").textContent = "CSV読込失敗";
 
-        document.getElementById('question')
-        .textContent =
-        'questions.csv が見つかりません';
+                return "";
 
-        return '';
-    }
-
-    return response.text();
-
-})
-
-
-    .then(function(text) {
-
-        var lines = text.split('\n');
-
-        for(var i = 0; i < lines.length; i++) {
-
-            var line = lines[i].trim();
-
-            if(line === '') {
-                continue;
             }
 
-            var parts = line.split(',');
+            return r.text();
 
-            if(parts.length >= 2) {
+        })
 
-questions.push({
+        .then(text => {
 
-    question: parts[0].trim(),
+            questions = text
 
-    answer: parts[1].trim(),
+                .split("\n")
 
-    image:
-    parts.length >= 3
-    ? parts[2].trim()
-    : ''
+                .map(v => v.trim())
 
-});
+                .filter(v => v)
+
+                .map(line => {
+
+                    const p = line.split(",");
+
+                    return {
+
+                        question: p[0].trim(),
+
+                        answer: p[1].trim(),
+
+                        image: p[2] ? p[2].trim() : ""
+
+                    };
+
+                });
+
+            if (!questions.length) {
+
+                $("question").textContent = "問題0件";
+
+                return;
+
             }
-        }
 
-if(questions.length === 0) {
+            sessionStart = new Date();
 
-    document.getElementById('question')
-    .textContent =
-    '問題0件';
+            showQuestion();
 
-    return;
-}
+            updateScore();
 
-sessionStart = new Date();
+        })
 
-showQuestion();
+        .catch(() => {
 
-updateScore();
+            $("question").textContent = "CSV読込失敗";
 
-    })
-
-    .catch(function(error) {
-
-        document.getElementById('question')
-        .textContent =
-        'CSV読込失敗';
-    });
-}
-
-var index = 0;
-
-var score = 0;
-var total = 0;
-
-var bestScore = 0;
-var weakData = {};
-var historyData = [];
-
-
-function saveSessionHistory() {
-
-    var d = new Date();
-
-    var stamp =
-
-        d.getFullYear()
-        + '/'
-        + (d.getMonth()+1)
-        + '/'
-        + d.getDate()
-        + ' '
-        + d.getHours()
-        + ':'
-        + ('0'+d.getMinutes()).slice(-2);
-
-    var rate =
-    Math.round(score / total * 100);
-
-    var subject =
-
-    document.getElementById(
-        'csvSelect'
-    ).options[
-        document.getElementById(
-            'csvSelect'
-        ).selectedIndex
-    ].text;
-
-    historyData.unshift(
-
-        stamp
-        + ' | '
-        + subject
-        + ' | '
-        + score
-        + '/'
-        + total
-        + ' | '
-        + rate
-        + '%'
-    );
-
-    if(historyData.length > 20) {
-
-        historyData.pop();
-    }
-
-    localStorage.setItem(
-        'historyData',
-        JSON.stringify(historyData)
-    );
-
-    document.getElementById(
-        'history'
-    ).innerHTML =
-    historyData.join('<br>');
-}
-
-function updateWeakRanking() {
-
-    var arr = [];
-
-    for(var key in weakData) {
-
-        arr.push({
-            q: key,
-            count: weakData[key]
         });
-    }
 
-    arr.sort(function(a,b){
-
-        return b.count - a.count;
-
-    });
-
-    var html = '';
-
-    for(
-        var i = 0;
-        i < Math.min(10, arr.length);
-        i++
-    ){
-
-        html +=
-
-        (i + 1)
-        + '位 '
-        + arr[i].q
-        + ' ('
-        + arr[i].count
-        + '回)<br>';
-    }
-
-    document.getElementById('weak')
-    .innerHTML = html;
-}
-
-var weakData = {};
-var reviewMode = false;
-
-var weakMode = false;
-var weakQuestions = [];
-var weakIndex = 0;
-
-
-var sessionStart = null;
-var wrongQuestions = [];
-var sessionFinished = false;
-
-var reviewIndex = 0;
-
-
-function shuffleQuestions() {
-
-    for(var i = questions.length - 1; i > 0; i--) {
-
-        var j = Math.floor(Math.random() * (i + 1));
-
-        var temp = questions[i];
-
-        questions[i] = questions[j];
-
-        questions[j] = temp;
-    }
 }
 
 function showQuestion() {
 
-    document.getElementById('question').textContent =
-    questions[index].question;
+    const q = questions[index];
 
-    var img =
-    document.getElementById('questionImage');
+    $("question").textContent = q.question;
 
-    if(questions[index].image) {
+    const img = $("questionImage");
 
-        img.src =
-        'images/' +
-        questions[index].image;
-
-        img.style.display = 'block';
-
+    if (q.image) {
+        img.src = "images/" + q.image;
+        img.style.display = "block";
     } else {
-
-        img.style.display = 'none';
+        img.style.display = "none";
     }
 
-    document.getElementById('answer').value = '';
+    $("answer").value = "";
+    $("result").textContent = "";
 
-    document.getElementById('result').textContent = '';
 }
 
+function updateScore() {
+
+    const rate =
+        total
+        ? Math.round(score / total * 100)
+        : 0;
+
+    $("score").textContent =
+        `${index + 1} / ${questions.length} 正解率: ${rate}%`;
+
+}
 function checkAnswer() {
 
-    if(sessionFinished) return;
+    if (sessionFinished) return;
 
-    var user =
-    document.getElementById('answer').value;
+    const user =
+        $("answer").value.trim().toLowerCase();
 
     total++;
-var answers =
-questions[index].answer.split('|');
 
-var correct = false;
+    const answers =
+        questions[index]
+        .answer
+        .split("|")
+        .map(v => v.trim().toLowerCase());
 
-for(var i=0;i<answers.length;i++){
+    const correct =
+        answers.includes(user);
 
-    if(
-        user.toLowerCase() ===
-        answers[i].trim().toLowerCase()
-    ){
-        correct = true;
-    }
-}
-
-if(correct)
-   
-
- {
+    if (correct) {
 
         score++;
 
-        document.getElementById('result').textContent =
-        '⭕ 正解';
+        $("result").textContent = "⭕ 正解";
 
     } else {
 
-        document.getElementById('result').textContent =
-        '❌ 正解: ' +
-        questions[index].answer;
+        $("result").textContent =
+            "❌ 正解: " +
+            questions[index].answer;
 
         wrongQuestions.push(index);
 
-        var q = questions[index].question;
+        const q = questions[index].question;
 
-        if(!weakData[q]) {
+        weakData[q] =
+            (weakData[q] || 0) + 1;
 
-            weakData[q] = 0;
-        }
+        updateWeakRanking();
 
-        weakData[q]++;
-
-updateWeakRanking();
-
-localStorage.setItem(
-    'weakData',
-    JSON.stringify(weakData)
-);
-
+        localStorage.setItem(
+            "weakData",
+            JSON.stringify(weakData)
+        );
 
     }
 
-updateScore();
+    updateScore();
 
 }
-
-
-function finishSession() {
-
-    sessionFinished = true;
-
-    var end = new Date();
-
-    var minutes = Math.floor(
-        (end - sessionStart) / 60000
-    );
-
-    var rate = Math.round(
-        score / total * 100
-    );
-
-var subject =
-
-document.getElementById(
-    'csvSelect'
-).options[
-    document.getElementById(
-        'csvSelect'
-    ).selectedIndex
-].text;
-
-document.getElementById('summary').innerHTML =
-
-    '<b>学習完了</b><br><br>' +
-
-    '科目：' + subject + '<br>' +
-
-    '正解数：' +
-    score +
-    '/' +
-    total +
-    '<br>' +
-
-    '正答率：' +
-    rate +
-    '%<br>' +
-
-    '学習時間：' +
-    minutes +
-    '分';
-
-if(wrongQuestions.length > 0){
-
-    document.getElementById('summary')
-    .innerHTML +=
-
-    '<br><br>' +
-
-    'ミス問題：' +
-
-    wrongQuestions.length +
-
-    '問<br><br>' +
-
-    '<button onclick="startReview()">' +
-
-    'ミス問題復習スタート' +
-
-    '</button>';
-}
-
-if(wrongQuestions.length > 0){
-
-    document.getElementById('summary')
-    .innerHTML +=
-
-    '<br>' +
-
-    '↓ ミス問題復習ボタンで再挑戦できます';
-}
-
-    saveSessionHistory();
-}
-
 
 function nextQuestion() {
 
-    if(sessionFinished) {
-        return;
-    }
+    if (sessionFinished) return;
 
-    if(weakMode){
+    if (weakMode) {
 
-        weakIndex++;
+        const pos =
+            weakQuestions.indexOf(index) + 1;
 
-        if(weakIndex >= weakQuestions.length){
+        if (pos >= weakQuestions.length) {
 
-            alert('苦手問題特訓完了');
+            alert("苦手問題特訓完了");
 
             weakMode = false;
 
             return;
         }
 
-        index =
-        weakQuestions[weakIndex];
+        index = weakQuestions[pos];
 
-        showQuestion();
-
-        return;
     }
 
+    else if (reviewMode) {
 
-if(reviewMode) {
+        reviewIndex++;
 
-    reviewIndex++;
+        if (reviewIndex >= wrongQuestions.length) {
 
-    if(reviewIndex >= wrongQuestions.length){
+            alert("ミス問題復習完了");
 
-        alert('ミス問題復習完了');
+            reviewMode = false;
 
-        reviewMode = false;
+            return;
+        }
 
-        return;
+        index = wrongQuestions[reviewIndex];
+
     }
 
-    index =
-    wrongQuestions[reviewIndex];
-}
-
-
-else {
+    else {
 
         index++;
 
-        if(index >= questions.length) {
+        if (index >= questions.length) {
 
             finishSession();
 
             return;
+
         }
+
     }
 
     showQuestion();
+
 }
+function startReview() {
 
-function startReview(){
+    if (!wrongQuestions.length) {
 
-    if(wrongQuestions.length === 0){
-        alert('ミス問題がありません');
+        alert("ミス問題がありません");
+
         return;
+
     }
 
     reviewMode = true;
-    wrongQuestions = [...new Set(wrongQuestions)];
 
     reviewIndex = 0;
+
+    wrongQuestions =
+        [...new Set(wrongQuestions)];
 
     index = wrongQuestions[0];
 
     sessionFinished = false;
 
-    document.getElementById('summary')
-    .innerHTML =
-
-    '<b>ミス問題復習中</b>';
+    $("summary").innerHTML =
+        "<b>ミス問題復習中</b>";
 
     showQuestion();
+
 }
+function startWeakMode() {
 
-function startWeakMode(){
+    weakQuestions = questions
 
-    weakQuestions = [];
+        .map((q, i) => weakData[q.question] ? i : -1)
 
-    for(var i=0;i<questions.length;i++){
+        .filter(i => i >= 0);
 
-        var q = questions[i].question;
+    if (!weakQuestions.length) {
 
-        if(weakData[q]){
-
-            weakQuestions.push(i);
-        }
-    }
-
-    if(weakQuestions.length === 0){
-
-        alert('苦手問題なし');
-
-        weakMode = false;
+        alert("苦手問題なし");
 
         return;
+
     }
 
     weakMode = true;
-    weakIndex = 0;
 
-    index =
-    weakQuestions[0];
+    index = weakQuestions[0];
 
     showQuestion();
+
 }
+function updateWeakRanking() {
 
+    const list = Object.entries(weakData)
+        .map(([q, count]) => ({ q, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
 
-function updateScore() {
+    $("weak").innerHTML = list
+        .map((v, i) =>
+            `${i + 1}位 ${v.q} (${v.count}回)`
+        )
+        .join("<br>");
 
-    var rate = 0;
+}
+function saveSessionHistory() {
 
-    if(total > 0) {
+    const d = new Date();
 
-        rate = Math.round(score / total * 100);
+    const stamp =
+        `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ` +
+        `${d.getHours()}:${("0"+d.getMinutes()).slice(-2)}`;
+
+    const rate =
+        Math.round(score / total * 100);
+
+    const subject =
+        $("csvSelect").options[
+            $("csvSelect").selectedIndex
+        ].text;
+
+    historyData.unshift(
+        `${stamp} | ${subject} | ${score}/${total} | ${rate}%`
+    );
+
+    historyData = historyData.slice(0,20);
+
+    localStorage.setItem(
+        "historyData",
+        JSON.stringify(historyData)
+    );
+
+    $("history").innerHTML =
+        historyData.join("<br>");
+
+}
+function finishSession() {
+
+    sessionFinished = true;
+
+    const end = new Date();
+
+    const minutes =
+        Math.floor((end - sessionStart)/60000);
+
+    const rate =
+        Math.round(score / total * 100);
+
+    const subject =
+        $("csvSelect").options[
+            $("csvSelect").selectedIndex
+        ].text;
+
+    let html =
+
+        `<b>学習完了</b><br><br>
+        科目：${subject}<br>
+        正解数：${score}/${total}<br>
+        正答率：${rate}%<br>
+        学習時間：${minutes}分`;
+
+    if(wrongQuestions.length){
+
+        html +=
+
+        `<br><br>
+        ミス問題：${wrongQuestions.length}問<br><br>
+
+        <button onclick="startReview()">
+
+        ミス問題復習スタート
+
+        </button>
+
+        <br>
+
+        ↓ ミス問題復習ボタンで再挑戦できます`;
+
     }
 
-    document.getElementById('score').textContent =
+    $("summary").innerHTML = html;
 
-        (index + 1)
-        + ' / '
-        + questions.length
-        + ' 正解率: '
-        + rate
-        + '%';
+    saveSessionHistory();
+
 }
-
-
-
-window.onload = function() {
-
-var saved =
-
-localStorage.getItem('historyData');
-
-if(saved) {
-
-    historyData =
-    JSON.parse(saved);
-
-    document.getElementById('history')
-    .innerHTML =
-    historyData.join('<br>');
-}
-
-var weakSaved =
-localStorage.getItem('weakData');
-
-if(weakSaved){
-    try{
-        weakData = JSON.parse(weakSaved);
-        updateWeakRanking();
-    }catch(e){}
-}
-
-    document.getElementById('checkBtn')
-    .addEventListener('click', checkAnswer);
-
-    document.getElementById('nextBtn')
-    .addEventListener('click', nextQuestion);
-
-document.getElementById('reviewBtn')
-.addEventListener('click', function() {
-
-    startReview();
-
-});
-
-document.getElementById('weakBtn')
-.addEventListener(
-'click',
-startWeakMode
-);
-
-    document.getElementById('answer')
-    .addEventListener('keypress', function(e) {
-
-        if(e.key === 'Enter') {
-
-            checkAnswer();
-        }
-    });
-document.getElementById('changeCsvBtn')
-.addEventListener('click', function() {
-
-questions = [];
-
-index = 0;
-score = 0;
-total = 0;
-
-document.getElementById(
-    'summary'
-).innerHTML = '';
-
-
-wrongQuestions = [];
-sessionFinished = false;
-reviewMode = false;
-
-loadCSV();
-
-
-});
-
-document.getElementById('questionImage')
-.addEventListener('click', function() {
-
-    window.open(this.src);
-});
-
-    loadCSV();
-
-};
-
-</script>
-
-
-</body>
-</html>
